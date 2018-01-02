@@ -8,7 +8,7 @@ module Fishbowl::Requests
       }
     end
 
-    _, _, response = Fishbowl::Objects::BaseObject.new.send_request(builder, "GetAccountBalanceRs")
+    _, response = Fishbowl::Objects::BaseObject.new.send_request(builder, "GetAccountBalanceRs")
 
     response.xpath("//Account/Balance").first.inner_text
   end

@@ -1,6 +1,6 @@
 module Fishbowl::Requests
   def self.get_work_order_list
-    _, _, response = Fishbowl::Objects::BaseObject.new.send_request('WorkOrderListRq', 'WorkOrderListRs')
+    _, response = Fishbowl::Objects::BaseObject.new.send_request('WorkOrderListRq', 'WorkOrderListRs')
 
     results = []
     response.xpath("//WO").each do |work_order_xml|

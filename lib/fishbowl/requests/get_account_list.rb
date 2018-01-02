@@ -1,6 +1,6 @@
 module Fishbowl::Requests
   def self.get_account_list
-    _, _, response = Fishbowl::Objects::BaseObject.new.send_request('GetAccountListRq', 'GetAccountListRs')
+    _, response = Fishbowl::Objects::BaseObject.new.send_request('GetAccountListRq', 'GetAccountListRs')
 
     results = []
 
