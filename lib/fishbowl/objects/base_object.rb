@@ -1,11 +1,9 @@
 module Fishbowl::Objects
   class BaseObject
-    @@ticket = nil
     def send_request(request, expected_response = 'FbiMsgsRs')
-      code, response = Fishbowl::Connection.send(build_request(request), expected_response)
+      code, response = Fishbowl::Connection.instance.send(build_request(request), expected_response)
       Fishbowl::Errors.confirm_success_or_raise(code)
       puts "Response successful" if Fishbowl.configuration.debug.eql? true
-      @@ticket = response.xpath("/FbiXml/Ticket/Key").text
       [code, response]
     end
 
@@ -38,11 +36,11 @@ module Fishbowl::Objects
     def build_request(request)
       new_req = Nokogiri::XML::Builder.new do |xml|
         xml.FbiXml {
-          if @@ticket.nil?
+          if Fishbowl::Connection.instance.ticket.nil?
             xml.Ticket
           else
             xml.Ticket {
-              xml.Key @@ticket
+              xml.Key Fishbowl::Connection.instance.ticket
             }
           end
 
