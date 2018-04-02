@@ -5,7 +5,8 @@ gemspec
 gem 'rake'
 gem 'rspec'
 gem 'equivalent-xml'
-gem 'nokogiri', '~> 1.7.0'
+gem 'nokogiri'
+gem 'require_all'
 
 group :localtest do
   gem 'pry'
