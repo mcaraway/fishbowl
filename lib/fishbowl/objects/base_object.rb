@@ -1,12 +1,28 @@
 module Fishbowl::Objects
   class BaseObject
     def send_request(request, expected_response = 'FbiMsgsRs')
-      code, response = Fishbowl::Connection.instance.send(build_request(request), expected_response)
+      get_connection
+      code, response = @connection.send(build_request(request), expected_response)
       Fishbowl::Errors.confirm_success_or_raise(code)
       puts "Response successful" if Fishbowl.configuration.debug.eql? true
+      close
       [code, response]
     end
+    
+    def set_connection(connection, retain_connection = false)
+      @connection = connection
+      @retain_connection = retain_connection
+    end
 
+    def get_connection
+      @connection = Fishbowl::Connection.new if @connection.nil?
+      @connection.get_connection
+      @connection
+    end
+    
+    def close
+      @connection.close unless @retain_connection.eql? true
+    end
   protected
 
     def self.attributes
@@ -36,11 +52,11 @@ module Fishbowl::Objects
     def build_request(request)
       new_req = Nokogiri::XML::Builder.new do |xml|
         xml.FbiXml {
-          if Fishbowl::Connection.instance.ticket.nil?
+          if @connection.ticket.nil?
             xml.Ticket
           else
             xml.Ticket {
-              xml.Key Fishbowl::Connection.instance.ticket
+              xml.Key @connection.ticket
             }
           end
 

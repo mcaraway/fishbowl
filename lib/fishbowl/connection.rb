@@ -2,31 +2,32 @@ require 'nokogiri'
 
 module Fishbowl
   class Connection
-    include Singleton
-    
-    def initialize 
-      puts "I'm being initialized!"
-      raise Fishbowl::Errors::MissingHost if Fishbowl.configuration.host.nil?
-
-      @host = Fishbowl.configuration.host
-      @port = Fishbowl.configuration.port.nil? ? 28192 : Fishbowl.configuration.port
-
-      @connection = TCPSocket.new @host, @port
-      raise Fishbowl::Errors::ConnectionNotEstablished if @connection.nil?
-      raise Fishbowl::Errors::MissingUsername if Fishbowl.configuration.host.nil?
-      raise Fishbowl::Errors::MissingPassword if Fishbowl.configuration.host.nil?
-
-      @username = Fishbowl.configuration.username
-      @password = Fishbowl.configuration.password
-
-      # code, response = Fishbowl::Objects::BaseObject.new.send_request(login_request)
-      code, response = send(build_request(login_request), 'FbiMsgsRs')
-      Fishbowl::Errors.confirm_success_or_raise(code)
-      puts "Response successful" if Fishbowl.configuration.debug.eql? true
-
-      @ticket = response.xpath("/FbiXml/Ticket/Key").text
-      raise "Login failed" unless code.eql? "1000"
-    end
+    # include Singleton
+#     
+    # def initialize 
+      # puts "I'm being initialized!"
+      # raise Fishbowl::Errors::MissingHost if Fishbowl.configuration.host.nil?
+# 
+      # @host = Fishbowl.configuration.host
+      # @port = Fishbowl.configuration.port.nil? ? 28192 : Fishbowl.configuration.port
+# # 
+      # # @connection = TCPSocket.new @host, @port
+      # # raise Fishbowl::Errors::ConnectionNotEstablished if @connection.nil?
+      # raise Fishbowl::Errors::MissingUsername if Fishbowl.configuration.username.nil?
+      # raise Fishbowl::Errors::MissingPassword if Fishbowl.configuration.password.nil?
+# 
+      # @username = Fishbowl.configuration.username
+      # @password = Fishbowl.configuration.password
+# # 
+      # # # code, response = Fishbowl::Objects::BaseObject.new.send_request(login_request)
+      # # code, response = send(build_request(login_request), 'FbiMsgsRs')
+      # # Fishbowl::Errors.confirm_success_or_raise(code)
+      # # puts "Response successful" if Fishbowl.configuration.debug.eql? true
+# # 
+      # # @ticket = response.xpath("/FbiXml/Ticket/Key").text
+      # # raise "Login failed" unless code.eql? "1000"
+      # puts "Finished initialize"
+    # end
 
     def host
       @host
@@ -49,11 +50,14 @@ module Fishbowl
     end
 
     def send(request, expected_response = 'FbiMsgsRs')
+      get_connection
       puts 'opening connection...' if Fishbowl.configuration.debug.eql? true
       puts request if Fishbowl.configuration.debug.eql? true
       puts 'waiting for response...' if Fishbowl.configuration.debug.eql? true
       write(request)
-      get_response(expected_response)
+      response = get_response(expected_response)
+      
+      response
     end
 
     def close
@@ -68,7 +72,7 @@ module Fishbowl
         login
       end
       
-      self.instance
+      # self.instance
     end
 
     private
@@ -79,26 +83,31 @@ module Fishbowl
       @host = Fishbowl.configuration.host
       @port = Fishbowl.configuration.port.nil? ? 28192 : Fishbowl.configuration.port
 
+      puts "Connecting..." if Fishbowl.configuration.debug.eql? true
       @connection = TCPSocket.new @host, @port
 
-      self.instance
+      # self.instance
     end
 
     def login()
+      puts "Logging in..." if Fishbowl.configuration.debug.eql? true
       raise Fishbowl::Errors::ConnectionNotEstablished if @connection.nil?
-      raise Fishbowl::Errors::MissingUsername if Fishbowl.configuration.host.nil?
-      raise Fishbowl::Errors::MissingPassword if Fishbowl.configuration.host.nil?
+      raise Fishbowl::Errors::MissingUsername if Fishbowl.configuration.username.nil?
+      raise Fishbowl::Errors::MissingPassword if Fishbowl.configuration.password.nil?
 
       @username = Fishbowl.configuration.username
       @password = Fishbowl.configuration.password
 
-      code, response = Fishbowl::Objects::BaseObject.new.send_request(login_request)
+      base = Fishbowl::Objects::BaseObject.new
+      base.set_connection(self, true)
+      
+      code, response = base.send_request(login_request)
       Fishbowl::Errors.confirm_success_or_raise(code)
 
       @ticket = response.xpath("/FbiXml/Ticket/Key").text
       raise "Login failed" unless code.eql? "1000"
 
-      self.instance
+      # self.instance
     end
     
     def login_request
